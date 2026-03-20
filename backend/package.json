@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/devMayank1005/MayAI#readme",
   "dependencies": {
+    "@langchain/google-genai": "^2.1.26",
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
@@ -29,6 +30,7 @@
     "express-validator": "^7.3.1",
     "googleapis": "^171.4.0",
     "jsonwebtoken": "^9.0.3",
+    "langchain": "^1.2.35",
     "mongoose": "^9.3.1",
     "nodemailer": "^8.0.3"
   }
