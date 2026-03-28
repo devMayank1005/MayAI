@@ -12,7 +12,8 @@ const geminiModel = new ChatGoogleGenerativeAI({
 const mistralModel = new ChatMistralAI({
     model: "mistral-medium-latest",
     apiKey: process.env.MISTRAL_API_KEY
-})
+    
+});
 
 const searchInternetTool = tool(
     searchInternet,

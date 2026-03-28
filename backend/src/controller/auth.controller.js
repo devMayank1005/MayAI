@@ -2,7 +2,6 @@ import userModel from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 import { sendEmail } from "../services/mail.service.js";
 
-
 /**
  * @desc Register a new user
  * @route POST /api/auth/register

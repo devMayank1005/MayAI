@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import authRouter from './routes/auth.routes.js';
+import chatRouter from './routes/chat.routes.js';
 import morgan from 'morgan';
 
 const app = express();
@@ -21,5 +22,6 @@ app.get('/', (req, res) => {
 	res.status(200).json({ success: true, message: 'Server is running' });
 });
 app.use('/api/auth', authRouter);
+app.use('/api/chats', chatRouter);
 
 export default app;
