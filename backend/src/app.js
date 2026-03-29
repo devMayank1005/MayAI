@@ -94,15 +94,12 @@ app.use('/api/chats', chatRouter);
 if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging') {
   console.log('Serving frontend from:', frontendDistPath);
 
-  // Serve static assets (JS, CSS, images)
+  // Serve static files
   app.use(express.static(frontendDistPath));
 
-  // SPA fallback (React Router)
-  app.get('*', (req, res, next) => {
-    // Skip API routes
+  // SPA fallback (Express v5 safe)
+  app.get('/*', (req, res, next) => {
     if (req.path.startsWith('/api')) return next();
-
-    // Skip static files (.js, .css, .png, etc.)
     if (req.path.includes('.')) return next();
 
     res.sendFile(path.join(frontendDistPath, 'index.html'));
