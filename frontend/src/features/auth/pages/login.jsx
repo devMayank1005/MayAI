@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hook/useAuth';
+import { useSelector } from 'react-redux';
 import './auth.css';
 
 const Login = () => {
@@ -8,6 +9,8 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const {handleLogin} = useAuth();
+  const error = useSelector((state) => state.auth.error);
+  const loading = useSelector((state) => state.auth.loading);
   const navigate = useNavigate();
   const submitForm = async (event ) => {
     event.preventDefault();
@@ -24,7 +27,7 @@ const Login = () => {
 
       <main className="auth-layout">
         <section className="auth-copy auth-copy--login">
-          <p className="auth-kicker">MayAi</p>
+          <img src="/mayai-logo.svg" alt="MayAi" className="auth-logo" />
           <h1 className="auth-title">Sign in and continue your thinking loop.</h1>
           <p className="auth-description">
             A quiet, fast workspace for research, drafting, and discovery.
@@ -78,7 +81,15 @@ const Login = () => {
               </button>
             </div>
 
-            <button type="submit" className="btn-primary">Sign in</button>
+            {error && (
+              <p style={{ color: '#d14343', margin: '6px 0 0', fontSize: '14px' }}>
+                {error}
+              </p>
+            )}
+
+            <button type="submit" className="btn-primary" disabled={loading}>
+              {loading ? 'Signing in...' : 'Sign in'}
+            </button>
           </form>
 
           <p className="panel-footer">
