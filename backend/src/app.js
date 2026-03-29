@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import path from 'path';
+import fs from 'fs';
 import morgan from 'morgan';
 import { fileURLToPath } from 'url';
 
@@ -16,9 +17,15 @@ app.set('trust proxy', 1);
 // Fix __dirname (ESM)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const repoRoot = path.resolve(__dirname, '..', '..');
 
-// Correct frontend build path
-const frontendDistPath = path.join(process.cwd(), 'frontend/dist');
+// Resolve frontend dist path independent of process working directory.
+const frontendDistCandidatePaths = [
+	path.join(repoRoot, 'frontend', 'dist'),
+	path.join(process.cwd(), 'frontend', 'dist'),
+];
+const frontendDistPath = frontendDistCandidatePaths.find((candidate) => fs.existsSync(candidate)) || frontendDistCandidatePaths[0];
+const uploadsPath = path.join(repoRoot, 'backend', 'uploads');
 
 // --------------------
 // MIDDLEWARES
@@ -34,7 +41,7 @@ app.use(cookieParser());
 app.use(morgan('dev'));
 
 // Static uploads
-app.use('/uploads', express.static(path.join(process.cwd(), 'backend/uploads')));
+app.use('/uploads', express.static(uploadsPath));
 
 // --------------------
 // API ROUTES

@@ -37,6 +37,13 @@ export async function register(req, res) {
 
     const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
 
+    console.log('[auth] Register request accepted for email dispatch', {
+        email,
+        username,
+        nodeEnv: process.env.NODE_ENV,
+        baseUrl: BASE_URL,
+    });
+
     // Do not block registration on SMTP availability.
     void sendEmail({
         to: email,

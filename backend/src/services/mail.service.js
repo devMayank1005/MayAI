@@ -26,6 +26,45 @@ function createTransporter() {
   });
 }
 
+function maskValue(value) {
+  if (!value) {
+    return "<missing>";
+  }
+
+  if (value.length <= 4) {
+    return "****";
+  }
+
+  return `${value.slice(0, 2)}***${value.slice(-2)}`;
+}
+
+export async function verifyMailTransport() {
+  const smtpUser = process.env.BREVO_SMTP_USER;
+  const senderEmail = process.env.BREVO_SENDER_EMAIL || smtpUser;
+
+  try {
+    const transporter = createTransporter();
+    await transporter.verify();
+
+    console.log("[mail] SMTP transport verification passed", {
+      host: "smtp-relay.brevo.com",
+      port: 587,
+      smtpUser: maskValue(smtpUser),
+      senderEmail,
+      nodeEnv: process.env.NODE_ENV,
+    });
+  } catch (error) {
+    console.error("[mail] SMTP transport verification failed", {
+      message: error.message,
+      code: error.code || null,
+      response: error.response || null,
+      smtpUser: maskValue(smtpUser),
+      senderEmail,
+      nodeEnv: process.env.NODE_ENV,
+    });
+  }
+}
+
 // Send Email
 export async function sendEmail({ to, subject, html, text }) {
   try {
