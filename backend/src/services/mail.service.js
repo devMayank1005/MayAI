@@ -40,8 +40,22 @@ export async function sendEmail({ to, subject, html, text }) {
       text,
     });
 
-    console.log("Email sent:", info.response);
+    const accepted = Array.isArray(info.accepted) ? info.accepted : [];
+    const rejected = Array.isArray(info.rejected) ? info.rejected : [];
+    const pending = Array.isArray(info.pending) ? info.pending : [];
 
+    console.log("Email send response:", info.response);
+    console.log("Email delivery diagnostics:", {
+      subject,
+      to,
+      from: fromEmail,
+      accepted,
+      rejected,
+      pending,
+      messageId: info.messageId,
+    });
+
+    return info;
   } catch (error) {
     console.error("Email sending failed:", error.message);
     throw error;
