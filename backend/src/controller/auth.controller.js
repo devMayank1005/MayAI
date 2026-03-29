@@ -48,7 +48,8 @@ export async function register(req, res) {
                 <a href="${BASE_URL}/api/auth/verify-email?token=${emailVerificationToken}">Verify Email</a>
                 <p>If you did not create an account, please ignore this email.</p>
                 <p>Best regards,<br>The MayAi Team</p>
-        `
+        `,
+        text: `Hi ${username},\n\nThank you for registering at MayAi.\n\nPlease verify your email by visiting this link:\n${BASE_URL}/api/auth/verify-email?token=${emailVerificationToken}\n\nIf you did not create an account, please ignore this email.\n\nBest regards,\nThe MayAi Team`
     }).then(() => {
         console.log(`Verification email sent to ${email}`);
     }).catch((err) => {
@@ -258,7 +259,8 @@ export async function resendVerificationEmail(req, res) {
                 <a href="${BASE_URL}/api/auth/verify-email?token=${emailVerificationToken}">Verify Email</a>
                 <p>If you did not request this email, please ignore this message.</p>
                 <p>Best regards,<br>The MayAi Team</p>
-        `
+        `,
+        text: `Hi ${user.username},\n\nPlease verify your email by visiting this link:\n${BASE_URL}/api/auth/verify-email?token=${emailVerificationToken}\n\nIf you did not request this email, please ignore this message.\n\nBest regards,\nThe MayAi Team`
     }).then(() => {
         console.log(`Verification email resent to ${user.email}`);
     }).catch((err) => {
