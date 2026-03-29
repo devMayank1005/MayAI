@@ -90,6 +90,9 @@ app.use('/api/chats', chatRouter);
 // --------------------
 // FRONTEND SERVING (FIXED)
 // --------------------
+// --------------------
+// FRONTEND SERVING (FIXED)
+// --------------------
 if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging') {
 
 	// Use process.cwd() → ALWAYS correct on Render
@@ -103,12 +106,8 @@ if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging')
 	// 2. Serve full frontend
 	app.use(express.static(frontendDistPath));
 
-	// 3. SPA fallback (only for non-API, non-file routes)
-	app.use((req, res, next) => {
-		if (req.path.startsWith('/api/') || req.path.startsWith('/uploads/') || req.path.includes('.')) {
-			return next();
-		}
-
+	// 3. SPA fallback (only for non-file routes)
+	app.get('*', (req, res) => {
 		res.sendFile(path.join(frontendDistPath, 'index.html'));
 	});
 }
