@@ -93,20 +93,22 @@ app.use('/api/chats', chatRouter);
 // --------------------
 // FRONTEND SERVING (FIXED)
 // --------------------
+// --------------------
+// FRONTEND SERVING (FIXED)
+// --------------------
 if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging') {
 
-	// Use process.cwd() → ALWAYS correct on Render
 	const frontendDistPath = path.join(process.cwd(), 'frontend/dist');
 
 	console.log("Serving frontend from:", frontendDistPath);
 
-	// 1. Serve assets explicitly (VERY IMPORTANT)
+	// Serve assets explicitly
 	app.use('/assets', express.static(path.join(frontendDistPath, 'assets')));
 
-	// 2. Serve full frontend
+	// Serve static files
 	app.use(express.static(frontendDistPath));
 
-	// 3. SPA fallback (only for non-file routes)
+	// SPA fallback
 	app.get('*', (req, res) => {
 		res.sendFile(path.join(frontendDistPath, 'index.html'));
 	});
