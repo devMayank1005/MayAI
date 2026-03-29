@@ -1,9 +1,9 @@
 import axios from "axios";
 
-const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+const apiBase = import.meta.env.VITE_API_BASE_URL || '/api';
 const normalizedBase = apiBase.replace(/\/$/, "");
 
-const chatBaseURL = `${normalizedBase}/api/chats`;
+const chatBaseURL = `${normalizedBase}/chats`;
 
 const chatApi = axios.create({
   baseURL: chatBaseURL,

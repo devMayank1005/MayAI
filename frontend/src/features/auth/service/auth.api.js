@@ -1,7 +1,10 @@
 import axios from 'axios';
 
+const apiBase = import.meta.env.VITE_API_BASE_URL || '/api';
+const normalizedBase = apiBase.replace(/\/$/, '');
+
 const api = axios.create({
-    baseURL: `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'}/api/auth`,
+    baseURL: `${normalizedBase}/auth`,
     withCredentials: true
 })
 
