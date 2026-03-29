@@ -37,23 +37,32 @@ export async function register(req, res) {
 
     const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
 
-    // Send email asynchronously (don't await) to avoid slowing down registration
-    sendEmail({
-        to: email,
-        subject: "Welcome to MayAi! Verify Your Email",
-        html: `
-                <p>Hi ${username},</p>
-                <p>Thank you for registering at <strong>MayAi</strong>. We're excited to have you on board!</p>
-                <p>Please verify your email address by clicking the link below:</p>
-                <a href="${BASE_URL}/api/auth/verify-email?token=${emailVerificationToken}">Verify Email</a>
-                <p>If you did not create an account, please ignore this email.</p>
-                <p>Best regards,<br>The MayAi Team</p>
-        `
-    }).catch(err => console.error('Failed to send verification email:', err))
+    let emailSent = false;
+
+    try {
+        await sendEmail({
+            to: email,
+            subject: "Welcome to MayAi! Verify Your Email",
+            html: `
+                    <p>Hi ${username},</p>
+                    <p>Thank you for registering at <strong>MayAi</strong>. We're excited to have you on board!</p>
+                    <p>Please verify your email address by clicking the link below:</p>
+                    <a href="${BASE_URL}/api/auth/verify-email?token=${emailVerificationToken}">Verify Email</a>
+                    <p>If you did not create an account, please ignore this email.</p>
+                    <p>Best regards,<br>The MayAi Team</p>
+            `
+        });
+        emailSent = true;
+    } catch (err) {
+        console.error('Failed to send verification email:', err);
+    }
 
     res.status(201).json({
-        message: "User registered successfully. Please check your email to verify your account.",
+        message: emailSent
+            ? "User registered successfully. Please check your email to verify your account."
+            : "User registered successfully. Email verification could not be sent.",
         success: true,
+        emailSent,
         user: {
             id: user._id,
             username: user.username,

@@ -11,6 +11,7 @@ const Register = () => {
   const [password, setPassword] = useState('');
   const [agreed, setAgreed] = useState(false);
   const [registered, setRegistered] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
   const [registerMessage, setRegisterMessage] = useState('');
   const [showSuccessToast, setShowSuccessToast] = useState(false);
   const { handleRegister } = useAuth();
@@ -39,7 +40,8 @@ const Register = () => {
 
     const response = await handleRegister(email, username, password);
     if (response?.user) {
-      setRegisterMessage(response.message || 'Registration successful. Verification email sent.');
+      setRegisterMessage(response.message || 'Registration successful.');
+      setEmailSent(response.emailSent || false);
       setRegistered(true);
       setShowSuccessToast(true);
     }
@@ -61,7 +63,7 @@ const Register = () => {
 
       {showSuccessToast && (
         <div className="auth-toast auth-toast--success" role="status" aria-live="polite">
-          <strong>Registration successful.</strong> Verification email sent.
+          <strong>Registration successful.</strong> {emailSent && 'Verification email sent.'}
         </div>
       )}
 
@@ -89,12 +91,16 @@ const Register = () => {
               <p style={{ marginBottom: '16px', color: '#666' }}>
                 {registerMessage}
               </p>
-              <p style={{ marginBottom: '16px', color: '#666' }}>
-                Verification email sent to <strong>{email}</strong>
-              </p>
-              <p style={{ marginBottom: '20px', color: '#666' }}>
-                Please click the link in the email to verify your account and proceed to login.
-              </p>
+              {emailSent && (
+                <>
+                  <p style={{ marginBottom: '16px', color: '#666' }}>
+                    Verification email sent to <strong>{email}</strong>
+                  </p>
+                  <p style={{ marginBottom: '20px', color: '#666' }}>
+                    Please click the link in the email to verify your account and proceed to login.
+                  </p>
+                </>
+              )}
               <button 
                 onClick={() => navigate('/login')} 
                 className="btn-primary"
