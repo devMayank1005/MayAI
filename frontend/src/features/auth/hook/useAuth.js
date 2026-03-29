@@ -8,11 +8,16 @@ export function useAuth() {
     async function handleRegister(email, username, password) {
         try {    
             dispatch(setLoading(true))
-            const response = await register(email, username, password)
+            const response = await register(username, email, password)
             dispatch(setUser(response.user))
-            return response.user
+            dispatch(setError(null))
+            return response
         } catch (error) {
-            dispatch(setError(error.response?.data?.message || error.message))
+            const serverMessage = error.response?.data?.message || error.message
+            const message = serverMessage === "User with this email or username already exists"
+                ? "User already registered with this email"
+                : serverMessage
+            dispatch(setError(message))
             return null
         } finally {
             dispatch(setLoading(false))
@@ -24,9 +29,14 @@ export function useAuth() {
             dispatch(setLoading(true))
             const response = await login(email, password)
             dispatch(setUser(response.user))
+            dispatch(setError(null))
             return response.user
         } catch (error) {
-            dispatch(setError(error.response?.data?.message || error.message))
+            const serverMessage = error.response?.data?.message || error.message
+            const message = serverMessage === "Invalid email or password"
+                ? "Incorrect email or password"
+                : serverMessage
+            dispatch(setError(message))
             return null
         } finally {
             dispatch(setLoading(false))
@@ -41,6 +51,23 @@ export function useAuth() {
             return response.user
         } catch (error) {
             dispatch(setError(error.response?.data?.message || error.message || "Failed to fetch user data"))
+            return null
+        } finally {
+            dispatch(setLoading(false))
+        }
+    }
+
+    async function initializeAuth() {
+        try {
+            dispatch(setLoading(true))
+            const response = await getMe()
+            dispatch(setUser(response.user))
+            return response.user
+        } catch (error) {
+            // 401 = not authenticated, don't treat as error
+            if (error.response?.status !== 401) {
+                dispatch(setError(error.response?.data?.message || error.message))
+            }
             return null
         } finally {
             dispatch(setLoading(false))
@@ -66,6 +93,7 @@ export function useAuth() {
         handleRegister,
         handleLogin,
         handleGetMe,
+        initializeAuth,
         handleLogout,
     }
 }

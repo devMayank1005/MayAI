@@ -7,12 +7,14 @@ import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { removeDoubleAsterisks } from '../utils/messageFormatting'
 
-const ThinkingPlaceholder = () => (
+const ThinkingPlaceholder = ({ isSearching = false }) => (
   <p className='inline-flex items-center gap-1 text-white/85'>
     <span className='h-1.5 w-1.5 animate-pulse rounded-full bg-white/65' />
     <span className='h-1.5 w-1.5 animate-pulse rounded-full bg-white/65 [animation-delay:120ms]' />
     <span className='h-1.5 w-1.5 animate-pulse rounded-full bg-white/65 [animation-delay:240ms]' />
-    <span className='ml-1 text-sm text-white/80'>Thinking...</span>
+    <span className='ml-1 text-sm text-white/80'>
+      {isSearching ? 'Searching internet...' : 'Thinking...'}
+    </span>
   </p>
 )
 
@@ -72,9 +74,18 @@ export const MessageDisplay = ({
           }`}
         >
           {message.role === 'user' ? (
-            <p>{removeDoubleAsterisks(message.content)}</p>
+            <div className='space-y-2'>
+              {message.content ? <p>{removeDoubleAsterisks(message.content)}</p> : null}
+              {message.imageUrl ? (
+                <img
+                  src={message.imageUrl}
+                  alt='Uploaded by user'
+                  className='max-h-64 w-full max-w-xs rounded-lg object-cover'
+                />
+              ) : null}
+            </div>
           ) : message.isThinking ? (
-            <ThinkingPlaceholder />
+            <ThinkingPlaceholder isSearching={Boolean(message.isSearching)} />
           ) : (
             <div className='prose prose-invert max-w-none text-sm'>
               <Markdown
@@ -89,6 +100,25 @@ export const MessageDisplay = ({
               >
                 {removeDoubleAsterisks(message.content)}
               </Markdown>
+
+              {Array.isArray(message.sources) && message.sources.length > 0 ? (
+                <div className='mt-3 border-t border-white/10 pt-2 not-prose'>
+                  <p className='text-xs uppercase tracking-[0.12em] text-white/60'>Sources</p>
+                  <div className='mt-2 space-y-1'>
+                    {message.sources.map((source, sourceIndex) => (
+                      <a
+                        key={`${source.url}-${sourceIndex}`}
+                        href={source.url}
+                        target='_blank'
+                        rel='noreferrer'
+                        className='block text-xs text-sky-300 hover:text-sky-200 hover:underline'
+                      >
+                        {source.title || source.url}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
             </div>
           )}
           <p className='mt-2 text-[11px] uppercase tracking-[0.12em] text-white/45'>
@@ -96,15 +126,6 @@ export const MessageDisplay = ({
           </p>
         </div>
       ))}
-
-      {isSendingMessage && (
-        <div className='max-w-[82%] w-fit rounded-2xl px-4 py-3 text-sm mr-auto border border-white/10 bg-[#1a1a1a] text-white/90'>
-          <ThinkingPlaceholder />
-          <p className='mt-2 text-[11px] uppercase tracking-[0.12em] text-white/45'>
-            MayAI
-          </p>
-        </div>
-      )}
 
       <div ref={messageContainerRef} className='h-0' />
     </div>

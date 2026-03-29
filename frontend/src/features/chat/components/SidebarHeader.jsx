@@ -9,7 +9,7 @@ export const SidebarHeader = ({ user, isMobile, onClose }) => {
     <div className='flex items-start justify-between gap-3'>
       <div>
         <p className='font-display text-xs uppercase tracking-[0.2em] text-white/55'>
-          MayAI
+          MayAi
         </p>
         <h1 className='mt-2 font-display text-2xl font-semibold tracking-tight text-white'>
           Chats

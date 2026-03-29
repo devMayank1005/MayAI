@@ -31,6 +31,11 @@ const Dashboard = () => {
   const [isSendingMessage, setIsSendingMessage] = useState(false)
   const [isDraftConversation, setIsDraftConversation] = useState(false)
   const [pendingUserMessage, setPendingUserMessage] = useState('')
+  const [useInternetSearch, setUseInternetSearch] = useState(false)
+  const [selectedImageFile, setSelectedImageFile] = useState(null)
+  const [selectedImagePreview, setSelectedImagePreview] = useState(null)
+  const [pendingUserImageUrl, setPendingUserImageUrl] = useState(null)
+  const [pendingUseInternetSearch, setPendingUseInternetSearch] = useState(false)
 
   const messageEndRef = useRef(null)
   const messageInputRef = useRef(null)
@@ -61,15 +66,23 @@ const Dashboard = () => {
   const activeMessages = activeChat?.messages || []
   const displayedMessages = useMemo(() => {
     if (!isSendingMessage || !pendingUserMessage) {
-      return activeMessages
+      if (!isSendingMessage || !pendingUserImageUrl) {
+        return activeMessages
+      }
+
+      return [
+        ...activeMessages,
+        { role: 'user', content: '', imageUrl: pendingUserImageUrl, isPending: true },
+        { role: 'assistant', content: 'Thinking...', isThinking: true, isSearching: pendingUseInternetSearch },
+      ]
     }
 
     return [
       ...activeMessages,
-      { role: 'user', content: pendingUserMessage, isPending: true },
-      { role: 'assistant', content: 'Thinking...', isThinking: true },
+      { role: 'user', content: pendingUserMessage, imageUrl: pendingUserImageUrl, isPending: true },
+      { role: 'assistant', content: 'Thinking...', isThinking: true, isSearching: pendingUseInternetSearch },
     ]
-  }, [activeMessages, isSendingMessage, pendingUserMessage])
+  }, [activeMessages, isSendingMessage, pendingUserMessage, pendingUserImageUrl, pendingUseInternetSearch])
   const desktopGridClasses = isDesktopSidebarVisible
     ? 'md:grid-cols-[var(--sidebar-width)_minmax(0,1fr)]'
     : 'md:grid-cols-1'
@@ -108,9 +121,26 @@ const Dashboard = () => {
       setIsDraftConversation(true)
       chat.handleStartNewConversation()
       setIsSidebarOpen(false)
+      setSelectedImageFile(null)
+      if (selectedImagePreview) {
+        URL.revokeObjectURL(selectedImagePreview)
+        setSelectedImagePreview(null)
+      }
+      setUseInternetSearch(false)
     },
     onCloseMobileSidebar: () => setIsSidebarOpen(false),
   })
+
+  useEffect(() => {
+    return () => {
+      if (selectedImagePreview) {
+        URL.revokeObjectURL(selectedImagePreview)
+      }
+      if (pendingUserImageUrl) {
+        URL.revokeObjectURL(pendingUserImageUrl)
+      }
+    }
+  }, [selectedImagePreview, pendingUserImageUrl])
 
   const handleSubmitMessage = async (event) => {
     event.preventDefault()
@@ -120,16 +150,27 @@ const Dashboard = () => {
     }
 
     const trimmedMessage = chatInput.trim()
-    if (!trimmedMessage) {
+    if (!trimmedMessage && !selectedImageFile) {
       return
     }
 
+    const imagePreviewForPending = selectedImagePreview
+
     setIsSendingMessage(true)
-    setPendingUserMessage(trimmedMessage)
+    setPendingUseInternetSearch(useInternetSearch)
+    setPendingUserMessage(trimmedMessage || '')
+    setPendingUserImageUrl(imagePreviewForPending)
     setChatInput('')
+    setSelectedImageFile(null)
+    setSelectedImagePreview(null)
 
     try {
-      const resolvedChatId = await chat.handleSendMessage({ message: trimmedMessage, chatId: currentChatId })
+      const resolvedChatId = await chat.handleSendMessage({
+        message: trimmedMessage,
+        chatId: currentChatId,
+        useInternetSearch,
+        imageFile: selectedImageFile,
+      })
       if (resolvedChatId) {
         setIsDraftConversation(false)
       }
@@ -141,6 +182,11 @@ const Dashboard = () => {
     } finally {
       setIsSendingMessage(false)
       setPendingUserMessage('')
+      setPendingUseInternetSearch(false)
+      if (imagePreviewForPending) {
+        URL.revokeObjectURL(imagePreviewForPending)
+      }
+      setPendingUserImageUrl(null)
     }
   }
 
@@ -154,9 +200,38 @@ const Dashboard = () => {
     setIsDraftConversation(true)
     chat.handleStartNewConversation()
     setIsSidebarOpen(false)
+    setSelectedImageFile(null)
+    if (selectedImagePreview) {
+      URL.revokeObjectURL(selectedImagePreview)
+      setSelectedImagePreview(null)
+    }
+    setUseInternetSearch(false)
     requestAnimationFrame(() => {
       messageInputRef.current?.focus()
     })
+  }
+
+  const handleSelectImage = (file) => {
+    if (!file) {
+      return
+    }
+
+    if (selectedImagePreview) {
+      URL.revokeObjectURL(selectedImagePreview)
+    }
+
+    const previewUrl = URL.createObjectURL(file)
+    setSelectedImageFile(file)
+    setSelectedImagePreview(previewUrl)
+  }
+
+  const handleRemoveImage = () => {
+    if (selectedImagePreview) {
+      URL.revokeObjectURL(selectedImagePreview)
+    }
+
+    setSelectedImageFile(null)
+    setSelectedImagePreview(null)
   }
 
   const handleRetry = () => {
@@ -296,6 +371,11 @@ const Dashboard = () => {
             isSending={isSendingMessage}
             isDraftConversation={isDraftConversation}
             messageInputRef={messageInputRef}
+            useInternetSearch={useInternetSearch}
+            onToggleInternetSearch={() => setUseInternetSearch((value) => !value)}
+            selectedImagePreview={selectedImagePreview}
+            onSelectImage={handleSelectImage}
+            onRemoveImage={handleRemoveImage}
           />
         </section>
       </section>

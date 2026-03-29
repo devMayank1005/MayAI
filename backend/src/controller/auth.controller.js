@@ -24,27 +24,35 @@ export async function register(req, res) {
         })
     }
 
-    const user = await userModel.create({ username, email, password })
+    const user = await userModel.create({ 
+        username, 
+        email, 
+        password,
+        verified: process.env.NODE_ENV === 'development' ? true : false
+    })
 
     const emailVerificationToken = jwt.sign({
         email: user.email,
     }, process.env.JWT_SECRET)
 
-    await sendEmail({
+    const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
+
+    // Send email asynchronously (don't await) to avoid slowing down registration
+    sendEmail({
         to: email,
-        subject: "Welcome to Perplexity!",
+        subject: "Welcome to MayAi! Verify Your Email",
         html: `
                 <p>Hi ${username},</p>
-                <p>Thank you for registering at <strong>Perplexity</strong>. We're excited to have you on board!</p>
+                <p>Thank you for registering at <strong>MayAi</strong>. We're excited to have you on board!</p>
                 <p>Please verify your email address by clicking the link below:</p>
-                <a href="http://localhost:3000/api/auth/verify-email?token=${emailVerificationToken}">Verify Email</a>
+                <a href="${BASE_URL}/api/auth/verify-email?token=${emailVerificationToken}">Verify Email</a>
                 <p>If you did not create an account, please ignore this email.</p>
-                <p>Best regards,<br>The Perplexity Team</p>
+                <p>Best regards,<br>The MayAi Team</p>
         `
-    })
+    }).catch(err => console.error('Failed to send verification email:', err))
 
     res.status(201).json({
-        message: "User registered successfully",
+        message: "User registered successfully. Please check your email to verify your account.",
         success: true,
         user: {
             id: user._id,
@@ -52,9 +60,6 @@ export async function register(req, res) {
             email: user.email
         }
     });
-
-
-
 }
 
 /**
@@ -169,11 +174,33 @@ export async function verifyEmail(req, res) {
 
         await user.save();
 
+        const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+
         const html =
             `
-        <h1>Email Verified Successfully!</h1>
-        <p>Your email has been verified. You can now log in to your account.</p>
-        <a href="http://localhost:3000/login">Go to Login</a>
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px; }
+                .container { max-width: 500px; margin: 0 auto; background: white; border-radius: 8px; padding: 40px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+                h1 { color: #333; margin-bottom: 16px; text-align: center; }
+                p { color: #666; line-height: 1.6; text-align: center; }
+                a { display: inline-block; margin-top: 24px; padding: 12px 32px; background-color: #007bff; color: white; text-decoration: none; border-radius: 6px; font-weight: 600; }
+                a:hover { background-color: #0056b3; }
+                .logo { text-align: center; margin-bottom: 24px; font-size: 24px; font-weight: 700; color: #007bff; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="logo">MayAi</div>
+                <h1>Email Verified Successfully!</h1>
+                <p>Welcome to MayAi! Your email has been verified and your account is ready to use.</p>
+                <p>Click the button below to log in and start exploring.</p>
+                <center><a href="${FRONTEND_URL}/login">Go to Login</a></center>
+            </div>
+        </body>
+        </html>
     `
 
         return res.send(html);
