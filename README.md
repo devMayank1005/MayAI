@@ -1,6 +1,30 @@
 # MayAI
 
+[![Node.js](https://img.shields.io/badge/Node.js-20%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=111827)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/Vite-7-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Express](https://img.shields.io/badge/Express-4-000000?logo=express&logoColor=white)](https://expressjs.com/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?logo=mongodb&logoColor=white)](https://www.mongodb.com/atlas)
+[![Render](https://img.shields.io/badge/Deploy-Render-46E3B7?logo=render&logoColor=111827)](https://render.com/)
+[![Live](https://img.shields.io/badge/Live-mayai--ozbt.onrender.com-0ea5e9)](https://mayai-ozbt.onrender.com)
+
 MayAI is a full-stack AI chat application with authentication, real-time chat updates, and email-based account verification.
+
+## Demo
+
+### Live App
+
+- https://mayai-ozbt.onrender.com
+
+### Screenshot
+
+![MayAI Screenshot](./docs/media/mayai-screenshot.png)
+
+### Walkthrough GIF
+
+![MayAI Demo GIF](./docs/media/mayai-demo.gif)
+
+> Add your latest screenshot and GIF files to `docs/media/` using the names above, or update the image paths here.
 
 ## Tech Stack
 
@@ -143,4 +167,23 @@ Health route:
 - If email works locally but fails on Render, verify Render env values and redeploy.
 - Check Render logs for mail diagnostics and Brevo API acceptance logs.
 - Check Brevo transactional logs for final delivery status.
+
+## Contributing
+
+Contributions are welcome.
+
+1. Fork the repository.
+2. Create a feature branch.
+3. Commit your changes with clear messages.
+4. Push your branch and open a pull request.
+
+Suggested checks before creating a PR:
+
+- Run backend and frontend locally.
+- Verify auth and email verification flows.
+- Ensure no sensitive values are committed.
+
+## Contributors
+
+- Mayank Kumar (Project Owner and Maintainer)
 
