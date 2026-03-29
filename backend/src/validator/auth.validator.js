@@ -40,3 +40,12 @@ export const loginValidator = [
     validate
 ];
 
+export const resendVerificationValidator = [
+    body("email")
+        .trim()
+        .notEmpty().withMessage("Email is required")
+        .isEmail().withMessage("Please provide a valid email"),
+
+    validate
+];
+

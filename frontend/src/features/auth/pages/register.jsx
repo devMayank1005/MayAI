@@ -4,6 +4,8 @@ import { useAuth } from '../hook/useAuth';
 import { useSelector } from 'react-redux';
 import './auth.css';
 
+const RESEND_COOLDOWN_SECONDS = 30;
+
 const Register = () => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -12,9 +14,14 @@ const Register = () => {
   const [agreed, setAgreed] = useState(false);
   const [registered, setRegistered] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+  const [emailDispatchQueued, setEmailDispatchQueued] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [resendMessage, setResendMessage] = useState('');
+  const [resendError, setResendError] = useState('');
   const [registerMessage, setRegisterMessage] = useState('');
   const [showSuccessToast, setShowSuccessToast] = useState(false);
-  const { handleRegister } = useAuth();
+  const { handleRegister, handleResendVerificationEmail } = useAuth();
   const error = useSelector((state) => state.auth.error);
   const loading = useSelector((state) => state.auth.loading);
   const navigate = useNavigate();
@@ -31,6 +38,25 @@ const Register = () => {
     return () => window.clearTimeout(toastTimer);
   }, [showSuccessToast]);
 
+  useEffect(() => {
+    if (resendCooldown <= 0) {
+      return undefined;
+    }
+
+    const intervalId = window.setInterval(() => {
+      setResendCooldown((prev) => {
+        if (prev <= 1) {
+          window.clearInterval(intervalId);
+          return 0;
+        }
+
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => window.clearInterval(intervalId);
+  }, [resendCooldown]);
+
   const submitForm = async (event) => {
     event.preventDefault();
 
@@ -41,10 +67,36 @@ const Register = () => {
     const response = await handleRegister(email, username, password);
     if (response?.user) {
       setRegisterMessage(response.message || 'Registration successful.');
-      setEmailSent(response.emailSent || false);
+      setEmailSent(Boolean(response.emailSent));
+      setEmailDispatchQueued(Boolean(response.emailDispatchQueued));
+      setResendCooldown(0);
+      setResendMessage('');
+      setResendError('');
       setRegistered(true);
       setShowSuccessToast(true);
     }
+  };
+
+  const resendVerification = async () => {
+    if (!email || resendLoading || resendCooldown > 0) {
+      return;
+    }
+
+    setResendLoading(true);
+    setResendCooldown(RESEND_COOLDOWN_SECONDS);
+    setResendMessage('');
+    setResendError('');
+
+    const response = await handleResendVerificationEmail(email);
+
+    if (response?.success) {
+      setResendMessage(response.message || 'Verification email resend requested.');
+      setEmailDispatchQueued(Boolean(response.emailDispatchQueued));
+    } else {
+      setResendError('Unable to resend email right now. Please try again.');
+    }
+
+    setResendLoading(false);
   };
 
   const getStrength = (pwd) => {
@@ -63,7 +115,7 @@ const Register = () => {
 
       {showSuccessToast && (
         <div className="auth-toast auth-toast--success" role="status" aria-live="polite">
-          <strong>Registration successful.</strong> {emailSent && 'Verification email sent.'}
+          <strong>Registration successful.</strong> {emailSent ? 'Verification email sent.' : 'Verification email dispatch queued.'}
         </div>
       )}
 
@@ -99,6 +151,35 @@ const Register = () => {
                   <p style={{ marginBottom: '20px', color: '#666' }}>
                     Please click the link in the email to verify your account and proceed to login.
                   </p>
+                </>
+              )}
+              {!emailSent && emailDispatchQueued && (
+                <>
+                  <p style={{ marginBottom: '12px', color: '#666' }}>
+                    We are sending your verification email to <strong>{email}</strong>. If you do not receive it, check spam or resend.
+                  </p>
+                  <button
+                    onClick={resendVerification}
+                    className="btn-primary"
+                    style={{ marginBottom: '12px' }}
+                    disabled={resendLoading || resendCooldown > 0}
+                  >
+                    {resendLoading
+                      ? 'Resending...'
+                      : resendCooldown > 0
+                        ? `Resend in ${resendCooldown}s`
+                        : 'Resend Verification Email'}
+                  </button>
+                  {resendMessage && (
+                    <p style={{ marginBottom: '8px', color: '#2f7a4f', fontSize: '14px' }}>
+                      {resendMessage}
+                    </p>
+                  )}
+                  {resendError && (
+                    <p style={{ marginBottom: '8px', color: '#d14343', fontSize: '14px' }}>
+                      {resendError}
+                    </p>
+                  )}
                 </>
               )}
               <button 

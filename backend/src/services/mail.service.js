@@ -15,6 +15,10 @@ function createTransporter() {
     host: "smtp-relay.brevo.com",
     port: 587,
     secure: false,
+    requireTLS: true,
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
     auth: {
       user: smtpUser,
       pass: smtpPass,

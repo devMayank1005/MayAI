@@ -38,7 +38,19 @@ Set these on your hosting platform:
 - `PORT` (optional; defaults to `3000`)
 - `MONGO_URI`
 - `JWT_SECRET`
+- `BASE_URL` (for email verification links)
+- `FRONTEND_URL` (for verify success redirect)
+- `SOCKET_ORIGIN` (socket.io CORS origin)
+- `BREVO_SMTP_USER` (Brevo SMTP Login, e.g. `a6722c001@smtp-brevo.com`)
+- `BREVO_SMTP_PASS` (Brevo SMTP/API key)
+- `BREVO_SENDER_EMAIL` (visible sender email)
 - any AI provider keys used by your app (for example Google/Mistral/Tavily)
+
+For this deployment:
+
+- `BASE_URL=https://mayai-ozbt.onrender.com`
+- `FRONTEND_URL=https://mayai-ozbt.onrender.com`
+- `SOCKET_ORIGIN=https://mayai-ozbt.onrender.com`
 
 ## Optional CORS variables
 
@@ -56,3 +68,19 @@ NODE_ENV=production npm run deploy
 ```
 
 This runs frontend build and then starts backend.
+
+## Post-deploy verification (mail + routes)
+
+Run these checks after deploy:
+
+1. Health route: `GET /api/health` should return success.
+2. Auth routes:
+	- `POST /api/auth/register`
+	- `POST /api/auth/login`
+	- `GET /api/auth/verify-email?token=...`
+	- `POST /api/auth/resend-verification`
+3. Registration should return quickly (non-blocking mail dispatch).
+4. Backend logs should show either:
+	- `Email sent: ...`
+	- `Verification email sent to ...`
+5. Brevo dashboard should show the transactional email as accepted/delivered.

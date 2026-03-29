@@ -34,3 +34,8 @@ export async function logout() {
     const response = await api.post('/logout');
     return response.data;
 }
+
+export async function resendVerificationEmail(email) {
+    const response = await api.post('/resend-verification', { email });
+    return response.data;
+}

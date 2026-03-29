@@ -1,5 +1,5 @@
 import { useDispatch } from "react-redux";
-import { register, login, getMe, logout } from "../service/auth.api";
+import { register, login, getMe, logout, resendVerificationEmail } from "../service/auth.api";
 import { setUser, setLoading, setError } from "../auth.slice";
 
 export function useAuth() {
@@ -89,11 +89,27 @@ export function useAuth() {
         }
     }
 
+    async function handleResendVerificationEmail(email) {
+        try {
+            dispatch(setLoading(true))
+            const response = await resendVerificationEmail(email)
+            dispatch(setError(null))
+            return response
+        } catch (error) {
+            const serverMessage = error.response?.data?.message || error.message || "Failed to resend verification email"
+            dispatch(setError(serverMessage))
+            return null
+        } finally {
+            dispatch(setLoading(false))
+        }
+    }
+
     return {
         handleRegister,
         handleLogin,
         handleGetMe,
         initializeAuth,
         handleLogout,
+        handleResendVerificationEmail,
     }
 }

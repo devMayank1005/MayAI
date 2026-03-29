@@ -10,6 +10,9 @@ import chatRouter from './routes/chat.routes.js';
 
 const app = express();
 
+// Required on Render/proxy deployments so req.ip reflects client IP.
+app.set('trust proxy', 1);
+
 // Fix __dirname (ESM)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

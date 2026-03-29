@@ -37,32 +37,28 @@ export async function register(req, res) {
 
     const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
 
-    let emailSent = false;
-
-    try {
-        await sendEmail({
-            to: email,
-            subject: "Welcome to MayAi! Verify Your Email",
-            html: `
-                    <p>Hi ${username},</p>
-                    <p>Thank you for registering at <strong>MayAi</strong>. We're excited to have you on board!</p>
-                    <p>Please verify your email address by clicking the link below:</p>
-                    <a href="${BASE_URL}/api/auth/verify-email?token=${emailVerificationToken}">Verify Email</a>
-                    <p>If you did not create an account, please ignore this email.</p>
-                    <p>Best regards,<br>The MayAi Team</p>
-            `
-        });
-        emailSent = true;
-    } catch (err) {
+    // Do not block registration on SMTP availability.
+    void sendEmail({
+        to: email,
+        subject: "Welcome to MayAi! Verify Your Email",
+        html: `
+                <p>Hi ${username},</p>
+                <p>Thank you for registering at <strong>MayAi</strong>. We're excited to have you on board!</p>
+                <p>Please verify your email address by clicking the link below:</p>
+                <a href="${BASE_URL}/api/auth/verify-email?token=${emailVerificationToken}">Verify Email</a>
+                <p>If you did not create an account, please ignore this email.</p>
+                <p>Best regards,<br>The MayAi Team</p>
+        `
+    }).then(() => {
+        console.log(`Verification email sent to ${email}`);
+    }).catch((err) => {
         console.error('Failed to send verification email:', err);
-    }
+    });
 
     res.status(201).json({
-        message: emailSent
-            ? "User registered successfully. Please check your email to verify your account."
-            : "User registered successfully. Email verification could not be sent.",
+        message: "User registered successfully. Verification email is being sent.",
         success: true,
-        emailSent,
+        emailDispatchQueued: true,
         user: {
             id: user._id,
             username: user.username,
@@ -220,6 +216,60 @@ export async function verifyEmail(req, res) {
             err: err.message
         })
     }
+}
+
+/**
+ * @desc Resend verification email
+ * @route POST /api/auth/resend-verification
+ * @access Public
+ * @body { email }
+ */
+export async function resendVerificationEmail(req, res) {
+    const { email } = req.body;
+
+    const user = await userModel.findOne({ email });
+
+    if (!user) {
+        return res.status(404).json({
+            message: "No account found with this email",
+            success: false,
+        });
+    }
+
+    if (user.verified) {
+        return res.status(400).json({
+            message: "Email is already verified",
+            success: false,
+        });
+    }
+
+    const emailVerificationToken = jwt.sign({
+        email: user.email,
+    }, process.env.JWT_SECRET);
+
+    const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
+
+    void sendEmail({
+        to: user.email,
+        subject: "MayAi - Verify Your Email",
+        html: `
+                <p>Hi ${user.username},</p>
+                <p>Please verify your email address by clicking the link below:</p>
+                <a href="${BASE_URL}/api/auth/verify-email?token=${emailVerificationToken}">Verify Email</a>
+                <p>If you did not request this email, please ignore this message.</p>
+                <p>Best regards,<br>The MayAi Team</p>
+        `
+    }).then(() => {
+        console.log(`Verification email resent to ${user.email}`);
+    }).catch((err) => {
+        console.error('Failed to resend verification email:', err);
+    });
+
+    return res.status(200).json({
+        message: "Verification email resend is being processed.",
+        success: true,
+        emailDispatchQueued: true,
+    });
 }
 
 /**
